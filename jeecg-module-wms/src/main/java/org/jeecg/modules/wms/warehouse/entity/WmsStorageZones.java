@@ -4,10 +4,8 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.math.BigDecimal;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.TableLogic;
+
+import com.baomidou.mybatisplus.annotation.*;
 import org.jeecg.common.constant.ProvinceCityArea;
 import org.jeecg.common.util.SpringContextUtils;
 import lombok.Data;
@@ -79,4 +77,10 @@ public class WmsStorageZones implements Serializable {
 	@Excel(name = "所属仓库", width = 15)
     @Schema(description = "所属仓库")
     private String warehouseId;
+
+    // 仓库名称
+    @Excel(name = "仓库名称", width = 15)
+    @Schema(description = "仓库名称")
+    @TableField(exist = false)
+    private String warehouseName;
 }

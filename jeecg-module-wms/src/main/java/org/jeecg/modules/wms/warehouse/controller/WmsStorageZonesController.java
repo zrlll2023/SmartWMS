@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import jakarta.servlet.Filter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
@@ -15,6 +18,7 @@ import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.wms.warehouse.entity.WmsStorageZones;
+import org.jeecg.modules.wms.warehouse.entity.WmsWarehouses;
 import org.jeecg.modules.wms.warehouse.service.IWmsStorageZonesService;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -22,6 +26,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 
+import org.jeecg.modules.wms.warehouse.service.IWmsWarehousesService;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.def.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -52,8 +57,13 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 public class WmsStorageZonesController extends JeecgController<WmsStorageZones, IWmsStorageZonesService> {
 	@Autowired
 	private IWmsStorageZonesService wmsStorageZonesService;
-	
-	/**
+
+	@Autowired
+	private IWmsWarehousesService wmsWarehousesService;
+     @Autowired
+     private Filter filter;
+
+	 /**
 	 * 分页列表查询
 	 *
 	 * @param wmsStorageZones
@@ -72,6 +82,33 @@ public class WmsStorageZonesController extends JeecgController<WmsStorageZones, 
         QueryWrapper<WmsStorageZones> queryWrapper = QueryGenerator.initQueryWrapper(wmsStorageZones, req.getParameterMap());
 		Page<WmsStorageZones> page = new Page<WmsStorageZones>(pageNo, pageSize);
 		IPage<WmsStorageZones> pageList = wmsStorageZonesService.page(page, queryWrapper);
+		/**
+		 * 实现在前端中储区管理的所属仓库显示的是名称而不是id
+		 * 设计逻辑如下：先要把 pageList 的仓库id拿出来（用stream流），然后根据仓库id查询仓库名称，将仓库名称放入 pageList，那么 pageList 就不能为空
+		 */
+
+		// 如果 pageList 的为空，直接返回
+		if(pageList.getRecords().isEmpty()){
+			return Result.OK(pageList);
+		}
+
+		// 先提取出 pageList 中的仓库id，使用stream流
+		List<String> collect = pageList.getRecords().stream().map(WmsStorageZones::getWarehouseId).collect(Collectors.toList());
+
+		// 根据仓库id查询仓库表拿仓库名称
+		BaseMapper<WmsWarehouses> baseMapper = wmsWarehousesService.getBaseMapper();
+		List<WmsWarehouses> warehouses = baseMapper.selectByIds(collect);
+
+		// 将仓库名称设置到 pageList
+		pageList.getRecords().stream().forEach(item -> {
+			// 仓库id
+			String warehouseId = item.getWarehouseId();
+			// 再从warehouses找id对应的名称  "orElse(new WmsWarehouses()"防止找不到对应的名称导致空指针而报错，所以现在是找不到对应的名称就会返回为空
+			WmsWarehouses wmsWarehouses = warehouses.stream().filter(warehouse -> warehouse.getId().equals(warehouseId)).findFirst().orElse(new WmsWarehouses());
+			item.setWarehouseName(wmsWarehouses.getWarehouseName());
+
+		});
+
 		return Result.OK(pageList);
 	}
 	
