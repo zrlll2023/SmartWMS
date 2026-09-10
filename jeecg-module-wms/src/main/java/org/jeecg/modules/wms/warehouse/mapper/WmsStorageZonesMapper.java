@@ -14,4 +14,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface WmsStorageZonesMapper extends BaseMapper<WmsStorageZones> {
 
+    List<WmsStorageZones> queryList(WmsStorageZones wmsStorageZones);
+
 }

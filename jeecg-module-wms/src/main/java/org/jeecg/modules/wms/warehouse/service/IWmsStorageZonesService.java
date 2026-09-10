@@ -1,5 +1,6 @@
 package org.jeecg.modules.wms.warehouse.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.jeecg.modules.wms.warehouse.entity.WmsStorageZones;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -11,4 +12,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IWmsStorageZonesService extends IService<WmsStorageZones> {
 
+    // 分页查询储区表
+    IPage<WmsStorageZones> queryList(WmsStorageZones wmsStorageZones, Integer pageNo, Integer pageSize);
 }

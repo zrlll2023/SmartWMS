@@ -60,8 +60,7 @@ public class WmsStorageZonesController extends JeecgController<WmsStorageZones, 
 
 	@Autowired
 	private IWmsWarehousesService wmsWarehousesService;
-     @Autowired
-     private Filter filter;
+
 
 	 /**
 	 * 分页列表查询
@@ -73,44 +72,55 @@ public class WmsStorageZonesController extends JeecgController<WmsStorageZones, 
 	 * @return
 	 */
 	//@AutoLog(value = "储区表-分页列表查询")
-	@Operation(summary="储区表-分页列表查询")
-	@GetMapping(value = "/list")
-	public Result<IPage<WmsStorageZones>> queryPageList(WmsStorageZones wmsStorageZones,
-								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
-								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
-								   HttpServletRequest req) {
-        QueryWrapper<WmsStorageZones> queryWrapper = QueryGenerator.initQueryWrapper(wmsStorageZones, req.getParameterMap());
-		Page<WmsStorageZones> page = new Page<WmsStorageZones>(pageNo, pageSize);
-		IPage<WmsStorageZones> pageList = wmsStorageZonesService.page(page, queryWrapper);
-		/**
-		 * 实现在前端中储区管理的所属仓库显示的是名称而不是id
-		 * 设计逻辑如下：先要把 pageList 的仓库id拿出来（用stream流），然后根据仓库id查询仓库名称，将仓库名称放入 pageList，那么 pageList 就不能为空
-		 */
+	 @Operation(summary="储区表-分页列表查询")
+	 @GetMapping(value = "/list")
+	 public Result<IPage<WmsStorageZones>> queryPageList(WmsStorageZones wmsStorageZones,
+														 @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
+														 @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
+														 HttpServletRequest req) {
 
-		// 如果 pageList 的为空，直接返回
-		if(pageList.getRecords().isEmpty()){
-			return Result.OK(pageList);
-		}
+		 IPage<WmsStorageZones> pageList = wmsStorageZonesService.queryList(wmsStorageZones,pageNo, pageSize);
 
-		// 先提取出 pageList 中的仓库id，使用stream流
-		List<String> collect = pageList.getRecords().stream().map(WmsStorageZones::getWarehouseId).collect(Collectors.toList());
-
-		// 根据仓库id查询仓库表拿仓库名称
-		BaseMapper<WmsWarehouses> baseMapper = wmsWarehousesService.getBaseMapper();
-		List<WmsWarehouses> warehouses = baseMapper.selectByIds(collect);
-
-		// 将仓库名称设置到 pageList
-		pageList.getRecords().stream().forEach(item -> {
-			// 仓库id
-			String warehouseId = item.getWarehouseId();
-			// 再从warehouses找id对应的名称  "orElse(new WmsWarehouses()"防止找不到对应的名称导致空指针而报错，所以现在是找不到对应的名称就会返回为空
-			WmsWarehouses wmsWarehouses = warehouses.stream().filter(warehouse -> warehouse.getId().equals(warehouseId)).findFirst().orElse(new WmsWarehouses());
-			item.setWarehouseName(wmsWarehouses.getWarehouseName());
-
-		});
-
-		return Result.OK(pageList);
-	}
+		 return Result.OK(pageList);
+	 }
+//	@Operation(summary="储区表-分页列表查询")
+//	@GetMapping(value = "/list")
+//	public Result<IPage<WmsStorageZones>> queryPageList(WmsStorageZones wmsStorageZones,
+//								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
+//								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
+//								   HttpServletRequest req) {
+//        QueryWrapper<WmsStorageZones> queryWrapper = QueryGenerator.initQueryWrapper(wmsStorageZones, req.getParameterMap());
+//		Page<WmsStorageZones> page = new Page<WmsStorageZones>(pageNo, pageSize);
+//		IPage<WmsStorageZones> pageList = wmsStorageZonesService.page(page, queryWrapper);
+//		/**
+//		 * 实现在前端中储区管理的所属仓库显示的是名称而不是id
+//		 * 设计逻辑如下：先要把 pageList 的仓库id拿出来（用stream流），然后根据仓库id查询仓库名称，将仓库名称放入 pageList，那么 pageList 就不能为空
+//		 */
+//
+//		// 如果 pageList 的为空，直接返回
+//		if(pageList.getRecords().isEmpty()){
+//			return Result.OK(pageList);
+//		}
+//
+//		// 先提取出 pageList 中的仓库id，使用stream流
+//		List<String> collect = pageList.getRecords().stream().map(WmsStorageZones::getWarehouseId).collect(Collectors.toList());
+//
+//		// 根据仓库id查询仓库表拿仓库名称
+//		BaseMapper<WmsWarehouses> baseMapper = wmsWarehousesService.getBaseMapper();
+//		List<WmsWarehouses> warehouses = baseMapper.selectByIds(collect);
+//
+//		// 将仓库名称设置到 pageList
+//		pageList.getRecords().stream().forEach(item -> {
+//			// 仓库id
+//			String warehouseId = item.getWarehouseId();
+//			// 再从warehouses找id对应的名称  "orElse(new WmsWarehouses()"防止找不到对应的名称导致空指针而报错，所以现在是找不到对应的名称就会返回为空
+//			WmsWarehouses wmsWarehouses = warehouses.stream().filter(warehouse -> warehouse.getId().equals(warehouseId)).findFirst().orElse(new WmsWarehouses());
+//			item.setWarehouseName(wmsWarehouses.getWarehouseName());
+//
+//		});
+//
+//		return Result.OK(pageList);
+//	}
 	
 	/**
 	 *   添加
