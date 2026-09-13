@@ -109,7 +109,7 @@ return "C" + String.format("%05d", code);
 | 文件 | 用途 |
 |---|---|
 | [Fix-README.md](./Fix-README.md) | 环境搭建与启动问题的修复记录 |
-| [Log-README.md](./Log-README.md) | 项目学习日记（含 AI 纠正与评价） |
+| [Log-README.md](doc/Log-README.md) | 项目学习日记（含 AI 纠正与评价） |
 
 ## 常用命令
 

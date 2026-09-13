@@ -16,9 +16,9 @@ derby.log
 
 ## 文档
 **/doc
-AiFix-README.md
-Log-README.md
-AiLog-README.md
+doc/AiFix-README.md
+doc/Log-README.md
+doc/AiLog-README.md
 
 ## AI IDE
 .freebuff
