@@ -6,12 +6,6 @@
 		update wms_product_categories set has_child = #{status} where id = #{id}
 	</update>
 
-	<select id="selectMaxChildSequence" resultType="java.lang.Integer">
-		select coalesce(max(cast(right(category_code, 2) as unsigned)), 0)
-		from wms_product_categories
-		where parent_id = #{parentId}
-	</select>
-
   	<!-- 【vue3专用】 -->
 	<select id="queryListByPid" parameterType="java.lang.Object" resultType="org.jeecg.common.system.vo.SelectTreeModel">
 		select

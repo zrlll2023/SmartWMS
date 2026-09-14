@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * @Description: 商品类别
  * @Author: jeecg-boot
- * @Date:   2026-09-12
+ * @Date:   2025-04-13
  * @Version: V1.0
  */
 public interface WmsProductCategoriesMapper extends BaseMapper<WmsProductCategories> {
@@ -22,14 +22,6 @@ public interface WmsProductCategoriesMapper extends BaseMapper<WmsProductCategor
 	 * @param status
 	 */
 	void updateTreeNodeStatus(@Param("id") String id,@Param("status") String status);
-
-	/**
-	 * 查询指定父节点下已使用的最大两位子节点序号。
-	 *
-	 * @param parentId 父节点ID
-	 * @return 最大序号，没有子节点时返回0
-	 */
-	int selectMaxChildSequence(@Param("parentId") String parentId);
 
 	/**
 	 * 【vue3专用】根据父级ID查询树节点数据

@@ -34,15 +34,15 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 import com.alibaba.fastjson.JSON;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jeecg.common.aspect.annotation.AutoLog;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 
  /**
  * @Description: 货主表
  * @Author: jeecg-boot
- * @Date:   2026-09-03
+ * @Date:   2025-04-13
  * @Version: V1.0
  */
 @Tag(name="货主表")
@@ -52,7 +52,7 @@ import org.apache.shiro.authz.annotation.RequiresPermissions;
 public class WmsCargoOwnersController extends JeecgController<WmsCargoOwners, IWmsCargoOwnersService> {
 	@Autowired
 	private IWmsCargoOwnersService wmsCargoOwnersService;
-	
+
 	/**
 	 * 分页列表查询
 	 *
@@ -74,7 +74,7 @@ public class WmsCargoOwnersController extends JeecgController<WmsCargoOwners, IW
 		IPage<WmsCargoOwners> pageList = wmsCargoOwnersService.page(page, queryWrapper);
 		return Result.OK(pageList);
 	}
-	
+
 	/**
 	 *   添加
 	 *
@@ -86,11 +86,10 @@ public class WmsCargoOwnersController extends JeecgController<WmsCargoOwners, IW
 	@RequiresPermissions("goods:wms_cargo_owners:add")
 	@PostMapping(value = "/add")
 	public Result<String> add(@RequestBody WmsCargoOwners wmsCargoOwners) {
-//		wmsCargoOwnersService.save(wmsCargoOwners);
 		wmsCargoOwnersService.add(wmsCargoOwners);
 		return Result.OK("添加成功！");
 	}
-	
+
 	/**
 	 *  编辑
 	 *
@@ -102,10 +101,10 @@ public class WmsCargoOwnersController extends JeecgController<WmsCargoOwners, IW
 	@RequiresPermissions("goods:wms_cargo_owners:edit")
 	@RequestMapping(value = "/edit", method = {RequestMethod.PUT,RequestMethod.POST})
 	public Result<String> edit(@RequestBody WmsCargoOwners wmsCargoOwners) {
-		wmsCargoOwnersService.updateById(wmsCargoOwners);
+		wmsCargoOwnersService.edit(wmsCargoOwners);
 		return Result.OK("编辑成功!");
 	}
-	
+
 	/**
 	 *   通过id删除
 	 *
@@ -120,7 +119,7 @@ public class WmsCargoOwnersController extends JeecgController<WmsCargoOwners, IW
 		wmsCargoOwnersService.removeById(id);
 		return Result.OK("删除成功!");
 	}
-	
+
 	/**
 	 *  批量删除
 	 *
@@ -135,7 +134,7 @@ public class WmsCargoOwnersController extends JeecgController<WmsCargoOwners, IW
 		this.wmsCargoOwnersService.removeByIds(Arrays.asList(ids.split(",")));
 		return Result.OK("批量删除成功!");
 	}
-	
+
 	/**
 	 * 通过id查询
 	 *
