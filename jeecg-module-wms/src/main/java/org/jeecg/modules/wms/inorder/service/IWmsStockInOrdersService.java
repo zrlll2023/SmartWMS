@@ -50,4 +50,5 @@ public interface IWmsStockInOrdersService extends IService<WmsStockInOrders> {
 	 * @param wmsStockInOrders
 	 */
 	void add(WmsStockInOrders wmsStockInOrders);
+
 }
