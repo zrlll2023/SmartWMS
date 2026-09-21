@@ -56,10 +56,13 @@ public class ReceiveTasksController  {
                                                  @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
                                                  @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
                                                  HttpServletRequest req) {
-        QueryWrapper<WmsTasks> queryWrapper = QueryGenerator.initQueryWrapper(wmsTasks, req.getParameterMap());
-        Page<WmsTasks> page = new Page<WmsTasks>(pageNo, pageSize);
-        IPage<WmsTasks> pageList = wmsTasksService.page(page, queryWrapper);
-        return Result.OK(pageList);
+//        QueryWrapper<WmsTasks> queryWrapper = QueryGenerator.initQueryWrapper(wmsTasks, req.getParameterMap());
+//        Page<WmsTasks> page = new Page<WmsTasks>(pageNo, pageSize);
+//        IPage<WmsTasks> pageList = wmsTasksService.page(page, queryWrapper);
+
+        IPage<WmsTasks> result = wmsTasksService.list(wmsTasks,pageNo,pageSize);
+
+        return Result.OK(result);
     }
 
     @Operation(summary="收货记录查询")
@@ -104,6 +107,15 @@ public class ReceiveTasksController  {
     @RequiresPermissions("inorder:receive_task:addRecords")
     @PostMapping(value = "/addRecords")
     public Result<String> addRecords(@RequestBody WmsTasksRecords wmsTasksRecords) {
+
+        String taskId = wmsTasksRecords.getId();
+        wmsTasksRecords.setId(null);
+
+        wmsTasksRecords.setTaskId(taskId);
+
+        wmsTasksService.recevice(wmsTasksRecords);
+
+
         return Result.OK("添加成功！");
     }
 

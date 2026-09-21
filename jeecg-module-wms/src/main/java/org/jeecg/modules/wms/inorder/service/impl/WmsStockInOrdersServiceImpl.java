@@ -150,6 +150,35 @@ public class WmsStockInOrdersServiceImpl extends ServiceImpl<WmsStockInOrdersMap
 		wmsStockInOrdersMapper.insert(wmsStockInOrders);
 	}
 
+	@Override
+	public String updateReceivedStatus(String stockInOrderId) {
+
+		WmsStockInOrders stockInOrders = new WmsStockInOrders();
+		stockInOrders.setId(stockInOrderId);
+
+		// 根据入库单id查询下边的明细
+		List<WmsStockInOrderItems> wmsStockInOrderItems = wmsStockInOrderItemsService.selectByMainId(stockInOrderId);
+		// 统计明细中的收货总量（良品）以及不良品总量
+		// 统计良品数量
+		int goodQuantity = wmsStockInOrderItems.stream().mapToInt(WmsStockInOrderItems::getExpectedQuantity).sum();
+		stockInOrders.setTotalReceivedQuantity(goodQuantity);
+		// 统计不良品数量
+		int badQuantity = wmsStockInOrderItems.stream().mapToInt(WmsStockInOrderItems::getExpectedQuantity).sum();
+		stockInOrders.setTotalDefectiveQuantity(badQuantity);
+
+		// 只要有一个明细的状态不是收货完成，则入库单的状态不是收货完成
+		boolean b = wmsStockInOrderItems.stream().anyMatch(wmsStockInOrderItems1 -> !WarehouseDictEnum.INBOUND_RECEIVED.getCode().equals(wmsStockInOrderItems1.getStatus()));
+
+		if(b){ // 未收货完成
+			stockInOrders.setStatus(WarehouseDictEnum.INBOUND_RECEIVING.getCode());
+		}else{ // 收货完成
+			stockInOrders.setStatus(WarehouseDictEnum.INBOUND_RECEIVED.getCode());
+		}
+		updateById(stockInOrders);
+		boolean b1 = updateById(stockInOrders);
+		return stockInOrders.getStatus();
+	}
+
 	public String generateOrderNumber() {
 		//当前8位时间戳(年月日), DateUtils.now()结果示例2001-11-11
 		String time = DateUtils.now().substring(0, 10).replace("-", "");
