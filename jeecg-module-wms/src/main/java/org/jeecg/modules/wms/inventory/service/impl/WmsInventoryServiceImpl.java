@@ -18,5 +18,15 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 @Service
 public class WmsInventoryServiceImpl extends ServiceImpl<WmsInventoryMapper, WmsInventory> implements IWmsInventoryService {
 
-
+    @Override
+    public WmsInventory getInventoryByUniqueKey(String productId, String locationCode, String batchNumber) {
+        // 库存唯一：商品id、储位编码、批号
+        LambdaQueryWrapper<WmsInventory> eq = new LambdaQueryWrapper<WmsInventory>()
+                .eq(WmsInventory::getProductId, productId)
+                .eq(WmsInventory::getLocationCode, locationCode)
+                // batchNumber 可能为空
+                .eq(StringUtils.isNotEmpty(batchNumber), WmsInventory::getBatchNumber, batchNumber)
+                .eq(StringUtils.isEmpty(batchNumber), WmsInventory::getBatchNumber, "");
+        return this.getOne(eq);
+    }
 }

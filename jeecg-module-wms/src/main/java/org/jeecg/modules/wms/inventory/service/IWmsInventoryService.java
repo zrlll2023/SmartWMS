@@ -11,6 +11,13 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IWmsInventoryService extends IService<WmsInventory> {
 
-
+    /**
+     * 根据唯一键获取库存
+     * @param productId
+     * @param locationCode
+     * @param batchNumber
+     * @return
+     */
+    public WmsInventory getInventoryByUniqueKey(String productId, String locationCode, String batchNumber);
 
 }
