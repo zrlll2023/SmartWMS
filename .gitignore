@@ -14,13 +14,5 @@ os_del_doc.cmd
 .svn
 derby.log
 
-## 文档
-**/doc
-doc/AiFix-README.md
-doc/Log-README.md
-doc/AiLog-README.md
-
-## AI IDE
-.freebuff
+doc
 .workbuddy
-.codex

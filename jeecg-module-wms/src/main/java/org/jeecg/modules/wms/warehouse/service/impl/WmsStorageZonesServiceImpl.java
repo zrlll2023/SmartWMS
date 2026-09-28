@@ -14,9 +14,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import java.util.List;
 
 /**
- * @Description: 储区表
+ * @Description: 库区表
  * @Author: jeecg-boot
- * @Date:   2026-09-06
+ * @Date:   2025-04-09
  * @Version: V1.0
  */
 @Service
@@ -24,19 +24,15 @@ public class WmsStorageZonesServiceImpl extends ServiceImpl<WmsStorageZonesMappe
 
     @Override
     public IPage<WmsStorageZones> queryList(WmsStorageZones wmsStorageZones, Integer pageNo, Integer pageSize) {
-
-        // 向 threadLocal 中设置分页参数
-        Page<WmsStorageZones> objects = PageHelper.startPage(pageNo, pageSize);
-        // 当执行 mapper 时被 pageInterceptor 拦截器拦截，向原始sql后拼接 limit ?,?
-        List<WmsStorageZones> wmsStorageZones1 = getBaseMapper().queryList(wmsStorageZones);
-
+        //开启分页查询,当执行查询时，插件进行相关的sql拦截进行分页操作，返回一个page对象
+        Page<WmsStorageZones> page = PageHelper.startPage(pageNo, pageSize);
+        List<WmsStorageZones> list = baseMapper.queryList(wmsStorageZones);
         PageDTO<WmsStorageZones> wmsStorageZonesPageDTO = new PageDTO<>();
-        wmsStorageZonesPageDTO.setRecords(wmsStorageZones1); // 当前页的数据
-        wmsStorageZonesPageDTO.setTotal(objects.getTotal()); // 总记录数
-        wmsStorageZonesPageDTO.setPages(objects.getPages()); // 总页数
-        wmsStorageZonesPageDTO.setCurrent(pageNo); // 当前页码
-        wmsStorageZonesPageDTO.setSize(pageSize); // 每页记录数
-
+        wmsStorageZonesPageDTO.setRecords(list);
+        wmsStorageZonesPageDTO.setTotal(page.getTotal());
+        wmsStorageZonesPageDTO.setSize(page.getPageSize());
+        wmsStorageZonesPageDTO.setCurrent(page.getPageNum());
+        wmsStorageZonesPageDTO.setPages(page.getPages());
         return wmsStorageZonesPageDTO;
     }
 }

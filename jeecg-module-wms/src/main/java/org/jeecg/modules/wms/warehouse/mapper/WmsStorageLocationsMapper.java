@@ -7,9 +7,9 @@ import org.jeecg.modules.wms.warehouse.entity.WmsStorageLocations;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
- * @Description: 储位表
+ * @Description: 库位表
  * @Author: jeecg-boot
- * @Date:   2026-09-06
+ * @Date:   2025-04-10
  * @Version: V1.0
  */
 public interface WmsStorageLocationsMapper extends BaseMapper<WmsStorageLocations> {

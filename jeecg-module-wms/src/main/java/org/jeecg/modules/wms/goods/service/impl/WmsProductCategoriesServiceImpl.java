@@ -5,6 +5,7 @@ import org.jeecg.common.exception.JeecgBootException;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.common.system.vo.SelectTreeModel;
 import org.jeecg.modules.wms.goods.entity.WmsProductCategories;
+import org.jeecg.modules.wms.goods.entity.WmsProducts;
 import org.jeecg.modules.wms.goods.mapper.WmsProductCategoriesMapper;
 import org.jeecg.modules.wms.goods.service.IWmsProductCategoriesService;
 import org.springframework.stereotype.Service;
@@ -13,23 +14,21 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 /**
  * @Description: 商品类别
  * @Author: jeecg-boot
- * @Date:   2026-09-12
+ * @Date:   2025-04-13
  * @Version: V1.0
  */
 @Service
 public class WmsProductCategoriesServiceImpl extends ServiceImpl<WmsProductCategoriesMapper, WmsProductCategories> implements IWmsProductCategoriesService {
 
 	@Override
-	@Transactional(rollbackFor = Exception.class)
 	public void addWmsProductCategories(WmsProductCategories wmsProductCategories) {
-	   //新增时设置hasChild为0，并由后端统一生成节点编码
+	   //新增时设置hasChild为0
 	    wmsProductCategories.setHasChild(IWmsProductCategoriesService.NOCHILD);
 		if(oConvertUtils.isEmpty(wmsProductCategories.getParentId())){
 			wmsProductCategories.setParentId(IWmsProductCategoriesService.ROOT_PID_VALUE);
@@ -41,33 +40,30 @@ public class WmsProductCategoriesServiceImpl extends ServiceImpl<WmsProductCateg
 				baseMapper.updateById(parent);
 			}
 		}
-		wmsProductCategories.setCategoryCode(generateCategoryCode(wmsProductCategories.getParentId()));
-		baseMapper.insert(wmsProductCategories);
+        //设置分类的编号
+        String code = generateCode(wmsProductCategories.getParentId());
+        wmsProductCategories.setCategoryCode( code);
+        baseMapper.insert(wmsProductCategories);
 	}
 
-	/**
-	 * 按父节点编码追加两位自增序号。根节点（ID=0）不把根节点的00编码重复拼接，
-	 * 因此根节点下的第一个类别编码为01；普通父节点则直接追加，例如0101、010101。
-	 */
-	private String generateCategoryCode(String parentId) {
-		String prefix = "";
-		if (!IWmsProductCategoriesService.ROOT_PID_VALUE.equals(parentId)) {
-			WmsProductCategories parent = baseMapper.selectById(parentId);
-			if (parent == null) {
-				throw new JeecgBootException("父节点不存在，无法生成类别编码");
-			}
-			prefix = parent.getCategoryCode();
-			if (oConvertUtils.isEmpty(prefix)) {
-				throw new JeecgBootException("父节点编码为空，无法生成类别编码");
-			}
-		}
-		int nextSequence = baseMapper.selectMaxChildSequence(parentId) + 1;
-		if (nextSequence > 99) {
-			throw new JeecgBootException("同一父节点下的类别数量不能超过99个");
-		}
-		return prefix + String.format(Locale.ROOT, "%02d", nextSequence);
-	}
-	
+    public String generateCode(String parentId) {
+        //编码规则：第一级分类为两位编号，第二级为四位编码(前两位为父类编号，后两位为自身编号)，依次类推
+        //如果parentId为空则查询所有根节点数量，新节点编号为所有分类数量+1
+        if(oConvertUtils.isEmpty(parentId)||parentId.equals(IWmsProductCategoriesService.ROOT_PID_VALUE)){
+            List<WmsProductCategories> list = baseMapper.selectList(new QueryWrapper<WmsProductCategories>().eq("parent_id", IWmsProductCategoriesService.ROOT_PID_VALUE));
+            int i = list.size() + 1;
+            return String.format("%02d", i);
+        }else{
+            //查询父节点
+            WmsProductCategories parent = baseMapper.selectById(parentId);
+            //查询该节点的下属节点
+            List<WmsProductCategories> list = baseMapper.selectList(new QueryWrapper<WmsProductCategories>().eq("parent_id",parentId));
+            int i = list.size() + 1;
+            //新节点编码为父节点编码+i
+            String code = parent.getCategoryCode() + String.format("%02d", i);
+            return code;
+        }
+    }
 	@Override
 	public void updateWmsProductCategories(WmsProductCategories wmsProductCategories) {
 		WmsProductCategories entity = this.getById(wmsProductCategories.getId());
@@ -87,7 +83,7 @@ public class WmsProductCategoriesServiceImpl extends ServiceImpl<WmsProductCateg
 		}
 		baseMapper.updateById(wmsProductCategories);
 	}
-	
+
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public void deleteWmsProductCategories(String id) throws JeecgBootException {
@@ -125,7 +121,7 @@ public class WmsProductCategoriesServiceImpl extends ServiceImpl<WmsProductCateg
             baseMapper.deleteById(id);
         }
 	}
-	
+
 	@Override
     public List<WmsProductCategories> queryTreeListNoPage(QueryWrapper<WmsProductCategories> queryWrapper) {
         List<WmsProductCategories> dataList = baseMapper.selectList(queryWrapper);
