@@ -3,13 +3,11 @@ package org.jeecg.modules.wms.goods.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.jeecg.common.util.RedisUtil;
-import org.jeecg.modules.wms.goods.entity.WmsProductImages;
-import org.jeecg.modules.wms.goods.entity.WmsProducts;
+import org.jeecg.modules.wms.goods.entity.*;
+import org.jeecg.modules.wms.goods.excel.WmsProductsImport;
 import org.jeecg.modules.wms.goods.mapper.WmsProductsMapper;
-import org.jeecg.modules.wms.goods.service.IWmsCargoOwnersService;
-import org.jeecg.modules.wms.goods.service.IWmsProductCategoriesService;
-import org.jeecg.modules.wms.goods.service.IWmsProductImagesService;
-import org.jeecg.modules.wms.goods.service.IWmsProductsService;
+import org.jeecg.modules.wms.goods.service.*;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +36,9 @@ public class WmsProductsServiceImpl extends ServiceImpl<WmsProductsMapper, WmsPr
 
     @Autowired
     private IWmsProductImagesService wmsProductImagesService;
+
+    @Autowired
+    private IWmsProductBrandService wmsProductBrandService;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -115,6 +116,50 @@ public class WmsProductsServiceImpl extends ServiceImpl<WmsProductsMapper, WmsPr
 //        }
     }
 
+    @Override
+    public void importProduct(List<WmsProductsImport> cachedDataList) {
+        // 遍历
+        for (WmsProductsImport wmsProductsImport : cachedDataList) {
+            // 将 WmsProductsImport 转化为 WmsProducts
+            WmsProducts products = convertWmsProducts(wmsProductsImport);
+
+            // 保存到数据库
+            boolean save = save(products);
+            if(!save){
+                throw new RuntimeException("保存商品失败");
+            }
+        }
+
+    }
+
+    private WmsProducts convertWmsProducts(WmsProductsImport wmsProductsImport) {
+        WmsProducts wmsProducts = new WmsProducts();
+        BeanUtils.copyProperties(wmsProductsImport,wmsProducts);
+
+        //处理名称
+        //货主名称
+        String ownerName = wmsProductsImport.getOwnerName();
+        //根据货主名称查询货主
+        LambdaQueryWrapper<WmsCargoOwners> eq = new LambdaQueryWrapper<WmsCargoOwners>()
+                .eq(WmsCargoOwners::getOwnerName, ownerName);
+        WmsCargoOwners wmsCargoOwners = wmsCargoOwnersService.getOne(eq);
+        wmsProducts.setOwnerId(wmsCargoOwners.getId());
+
+        //根据商品分类名称查询分类
+        String categoryName = wmsProductsImport.getCategoryName();
+        LambdaQueryWrapper<WmsProductCategories> queryWrapper = new LambdaQueryWrapper<WmsProductCategories>()
+                .eq(WmsProductCategories::getCategoryName, categoryName);
+        WmsProductCategories wmsProductCategories = wmsProductCategoriesService.getOne(queryWrapper);
+        wmsProducts.setCategoryId(wmsProductCategories.getId());
+        //根据品牌名称查询 品牌
+        String brandName = wmsProductsImport.getProductBrandName();
+        LambdaQueryWrapper<WmsProductBrand> queryWrapper2 = new LambdaQueryWrapper<WmsProductBrand>()
+                .eq(WmsProductBrand::getName, brandName);
+        WmsProductBrand wmsProductBrand = wmsProductBrandService.getOne(queryWrapper2);
+        wmsProducts.setProductBrand(wmsProductBrand.getId());
+
+        return wmsProducts;
+    }
 
     /**
      * 生成商品条码全局唯一

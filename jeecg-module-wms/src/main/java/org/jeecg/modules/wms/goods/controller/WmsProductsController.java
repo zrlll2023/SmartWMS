@@ -1,5 +1,6 @@
 package org.jeecg.modules.wms.goods.controller;
 
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
+import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,6 +19,8 @@ import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.query.QueryRuleEnum;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.wms.goods.entity.*;
+import org.jeecg.modules.wms.goods.excel.ImportGoodsListener;
+import org.jeecg.modules.wms.goods.excel.WmsProductsImport;
 import org.jeecg.modules.wms.goods.service.*;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -219,11 +223,25 @@ public class WmsProductsController extends JeecgController<WmsProducts, IWmsProd
     * @param request
     * @param wmsProducts
     */
-    @RequiresPermissions("goods:wms_products:exportXls")
     @RequestMapping(value = "/exportXls")
-    public ModelAndView exportXls(HttpServletRequest request, WmsProducts wmsProducts) {
-        return super.exportXls(request, wmsProducts, WmsProducts.class, "商品信息表");
+    public void exportXls(HttpServletRequest request,HttpServletResponse response, WmsProducts wmsProducts) throws IOException {
+        // 根据条件查询商品列表
+        Result<IPage<WmsProducts>> iPageResult = this.queryPageList(wmsProducts, 1, 100, request);
+        List<WmsProducts> records = iPageResult.getResult().getRecords();
+
+        // 这里注意 有同学反应使用swagger 会导致各种问题，请直接用浏览器或者用postman
+		response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+		response.setCharacterEncoding("utf-8");
+		// 这里URLEncoder.encode可以防止中文乱码 当然和easyexcel没有关系
+		String fileName = URLEncoder.encode("测试", "UTF-8").replaceAll("\\+", "%20");
+		response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
+		EasyExcel.write(response.getOutputStream(), WmsProducts.class).sheet("模板").doWrite(records);
     }
+//	 @RequiresPermissions("goods:wms_products:exportXls")
+//	 @RequestMapping(value = "/exportXls")
+//	 public ModelAndView exportXls(HttpServletRequest request, WmsProducts wmsProducts) {
+//		 return super.exportXls(request, wmsProducts, WmsProducts.class, "商品信息表");
+//	 }
 
     /**
       * 通过excel导入数据
@@ -234,8 +252,13 @@ public class WmsProductsController extends JeecgController<WmsProducts, IWmsProd
     */
     @RequiresPermissions("goods:wms_products:importExcel")
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
-    public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {
-        return super.importExcel(request, response, WmsProducts.class);
+    public Result<?> importExcel(MultipartFile file, HttpServletRequest request, HttpServletResponse response) throws IOException {
+		EasyExcel.read(file.getInputStream(), WmsProductsImport.class, new ImportGoodsListener(wmsProductsService)).sheet().doRead();
+		return Result.OK("文件导入成功！");
     }
-
+//	 @RequiresPermissions("goods:wms_products:importExcel")
+//	 @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
+//	 public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {
+//		 return super.importExcel(request, response, WmsProducts.class);
+//	 }
 }

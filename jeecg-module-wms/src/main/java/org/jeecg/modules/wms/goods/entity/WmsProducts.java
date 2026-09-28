@@ -5,6 +5,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.math.BigDecimal;
 
+import com.alibaba.excel.annotation.ExcelIgnore;
+import com.alibaba.excel.annotation.ExcelProperty;
 import com.baomidou.mybatisplus.annotation.*;
 import org.jeecg.common.constant.ProvinceCityArea;
 import org.jeecg.common.util.SpringContextUtils;
@@ -35,6 +37,7 @@ public class WmsProducts implements Serializable {
 	/**主键*/
 	@TableId(type = IdType.ASSIGN_ID)
     @Schema(description = "主键")
+    @ExcelIgnore
     private String id;
 	/**创建人*/
     @Schema(description = "创建人")
@@ -58,6 +61,7 @@ public class WmsProducts implements Serializable {
 	/**商品名称*/
 	@Excel(name = "商品名称", width = 15)
     @Schema(description = "商品名称")
+    @ExcelProperty(value = "商品名称")
     private String productName;
 	/**货主id*/
 	@Excel(name = "货主id", width = 15)
